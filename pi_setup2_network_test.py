@@ -30,6 +30,7 @@ setup_steps = [
     "sudo systemctl enable systemd-networkd"
 ]
 
+
 # Function to execute command line
 def execute_command(step):
     try:
@@ -51,6 +52,7 @@ def execute_command(step):
     except Exception as ex:
         print(f"An error occurred: {ex}")
 
+
 # Function to validate and input IP address
 def get_valid_ip(prompt):
     while True:
@@ -61,6 +63,7 @@ def get_valid_ip(prompt):
             print(f"Provided IP Address is: {ip_input}")
             return ip_input
 
+
 # Function to setup WiFi configuration
 def setup_wifi():
     # Prompt user for WiFi SSID and password
@@ -69,9 +72,11 @@ def setup_wifi():
     # Write WiFi configuration file
     try:
         with open(file_location_wifi, 'w') as wifi_file:
-            wifi_file.write(f'[Match]\nName=wlan0\n[Network]\nDHCP=yes\n[WiFi]\nSSID={wifi_ssid}\nPassword={wifi_password}\n')
+            wifi_file.write(
+                f'[Match]\nName=wlan0\n[Network]\nDHCP=yes\n[WiFi]\nSSID={wifi_ssid}\nPassword={wifi_password}\n')
     except Exception as e:
         print(f"An error occurred while writing WiFi configuration file: {e}")
+
 
 # Enable static or dynamic IP-address
 print("Welcome to Raspberry Pi network interface setup.")
@@ -81,10 +86,6 @@ if setup_input.lower() == 'yes' or setup_input.lower() == 'y':
     # Get static IP address and gateway for Ethernet
     eth_static_ip = get_valid_ip("Enter the required static IP address for Ethernet (e.g. 192.168.1.100): ")
     eth_gateway_ip = get_valid_ip("Enter the corresponding gateway for Ethernet (e.g. 192.168.1.1): ")
-
-    # Get static IP address and gateway for WiFi
-    wifi_static_ip = get_valid_ip("Enter the required static IP address for WiFi (e.g. 192.168.2.100): ")
-    wifi_gateway_ip = get_valid_ip("Enter the corresponding gateway for WiFi (e.g. 192.168.2.1): ")
 
     # Execute setup steps
     for step in setup_steps:
@@ -100,33 +101,23 @@ if setup_input.lower() == 'yes' or setup_input.lower() == 'y':
                                 f'Gateway={eth_gateway_ip}\n'
                                 f'DNS={eth_gateway_ip}\n'
                                 )
-    except Exception as e:
-        print(f"An error occurred while writing to the network configuration file: {e}")
-
-    # Write WiFi IP address information to the network configuration file
-    try:
-        with open(file_location_wifi, 'w') as wifi_file:
-            wifi_file.write('[Match]\n'
-                            'Name=wlan0\n'
-                            '[Network]\n'
-                            f'Address={wifi_static_ip}/24\n'
-                            f'Gateway={wifi_gateway_ip}\n'
-                            f'DNS={wifi_gateway_ip}\n'
-                            )
-    except Exception as e:
-        print(f"An error occurred while writing WiFi configuration file: {e}")
+    except Exception as ex:
+        print(f"An error occurred while writing to the network configuration file: \n {ex}")
 
     # Start systemd-networkd
     execute_command("sudo systemctl start systemd-networkd")
 
     print("#################################################################\n")
-    print("If no error occurred, Ethernet and WiFi setup completed.\n")
+    print("If no error occurred, Ethernet setup completed.\n")
     print("#################################################################\n")
     time.sleep(5)
 
     # Check if WiFi setup is needed
     wifi_setup_input = input("WiFi configuration setup needed? (Y/n): ")
     if wifi_setup_input.lower() == 'yes' or wifi_setup_input.lower() == 'y':
+        # Get static IP address and gateway for WiFi
+        wifi_static_ip = get_valid_ip("Enter the required static IP address for WiFi (e.g. 192.168.2.100): ")
+        wifi_gateway_ip = get_valid_ip("Enter the corresponding gateway for WiFi (e.g. 192.168.2.1): ")
         setup_wifi()
         execute_command("sudo systemctl restart systemd-networkd")
 
